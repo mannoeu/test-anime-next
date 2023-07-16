@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-export default function Home({ animes }) {
+export default function Search({ animes }) {
   const router = useRouter();
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-between p-24 bg-zinc-800 text-zinc-200">
-      <h1 className="text-xl text-bold uppercase mb-4">Search</h1>
+      <h1 className="text-xl text-bold uppercase mb-4">Search other</h1>
       <form
         className="w-full my-8"
         onSubmit={(event) => {
@@ -25,14 +25,15 @@ export default function Home({ animes }) {
           placeholder="Search anime..."
         />
       </form>
-      <h1 className="text-xl text-bold uppercase mb-4">Trending</h1>
+
+      <h1 className="text-xl text-bold uppercase mb-4">Results</h1>
 
       <ul className="flex flex-wrap gap-4 items-center">
         {animes?.map((item) => (
           <Link
             className="bg-zinc-200/20 rounded-sm transition-all hover:bg-zinc-600 hover:shadow-md"
-            key={item?.id}
-            href={`/anime/${item?.id}`}
+            key={item?.category_id}
+            href={`/anime/${item?.category_id}`}
           >
             <li className="flex flex-col justify-between w-[200px]">
               <img
@@ -49,9 +50,10 @@ export default function Home({ animes }) {
   );
 }
 
-export async function getServerSideProps() {
+export async function getServerSideProps(props) {
+  const query = props.query.q;
   const res =
-    await fetch(`https://animeland.appanimeplus.tk/videoweb/api.php?action=trendingcategory
+    await fetch(`https://animeland.appanimeplus.tk/videoweb/api.php?action=searchvideo&searchword=${query}
   `);
   const animes = await res.json();
 
