@@ -1,59 +1,59 @@
-import Link from "next/link";
-import { useRouter } from "next/router";
+import { Controller } from "src/services/api";
 
-export default function Home({ animes }) {
-  const router = useRouter();
+import { Header } from "src/components/Header";
+import { Category } from "src/components/Category";
 
+export default function Home({ trending, dubbed, moovies }) {
   return (
-    <main className="flex min-h-screen w-full flex-col items-center justify-between p-24 bg-zinc-800 text-zinc-200">
-      <h1 className="text-xl text-bold uppercase mb-4">Search</h1>
-      <form
-        className="w-full my-8"
-        onSubmit={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          const query = event.target[0].value;
-
-          if (query.trim().length) {
-            router.push(`/search?q=${query}`);
+    <main className="w-full min-h-screen bg-c-dark text-c-light py-6 px-4">
+      <Header />
+      <div className="flex flex-col gap-10">
+        <Category
+          title="Popular"
+          data={trending}
+          getOptionId={(option) => option?.id}
+          getOptionImage={(option) =>
+            Controller.createImageURL({ uri: option?.category_icon })
           }
-        }}
-      >
-        <input
-          className="w-full rounded-md py-2 px-4 outline-none border-2 border-white focus:border-red-300 text-zinc-900"
-          type="search"
-          placeholder="Search anime..."
+          getOptionTitle={(option) => option?.category_name}
         />
-      </form>
-      <h1 className="text-xl text-bold uppercase mb-4">Trending</h1>
-
-      <ul className="flex flex-wrap gap-4 items-center">
-        {animes?.map((item) => (
-          <Link
-            className="bg-zinc-200/20 rounded-sm transition-all hover:bg-zinc-600 hover:shadow-md"
-            key={item?.id}
-            href={`/anime/${item?.id}`}
-          >
-            <li className="flex flex-col justify-between w-[200px]">
-              <img
-                className="object-contain w-full"
-                src={`https://cdn.appanimeplus.tk/img/${item?.category_icon}`}
-                alt="Anime Banner"
-              />
-              <p className="p-4 text-zinc-200 text-md">{item?.category_name}</p>
-            </li>
-          </Link>
-        ))}
-      </ul>
+        <Category
+          title="Dubbed"
+          data={dubbed}
+          getOptionId={(option) => option?.category_id}
+          getOptionImage={(option) =>
+            Controller.createImageURL({ uri: option?.category_icon })
+          }
+          getOptionTitle={(option) => option?.category_name}
+        />
+        <Category
+          title="Moovies"
+          data={moovies}
+          getOptionId={(option) => option?.category_id}
+          getOptionImage={(option) =>
+            Controller.createImageURL({ uri: option?.category_icon })
+          }
+          getOptionTitle={(option) => option?.category_name}
+        />
+      </div>
+      <footer className="p-4 text-center w-full mt-10">
+        <span>Made with ❤️</span>
+      </footer>
     </main>
   );
 }
 
-export async function getServerSideProps() {
-  const res =
-    await fetch(`https://animeland.appanimeplus.tk/videoweb/api.php?action=trendingcategory
-  `);
-  const animes = await res.json();
+export async function getStaticProps() {
+  const [trending, dubbed, moovies] = await Promise.all([
+    Controller.getTrendingCategory(),
+    Controller.getDubbed(),
+    Controller.getMoovies(),
+  ]);
 
-  return { props: { animes } };
+  const ONE_DAY = 24 * 60 * 60 * 1000;
+
+  return {
+    props: { trending, dubbed, moovies },
+    revalidate: ONE_DAY,
+  };
 }
